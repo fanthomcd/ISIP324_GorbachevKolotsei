@@ -36,7 +36,7 @@ namespace ISIP324_GorbachevKolotsei
     }
     class Course
     {
-        string title;
+        public string title;
         private static int nextCode = 1;
         public int code;
         public Teacher teacher;
@@ -65,14 +65,16 @@ namespace ISIP324_GorbachevKolotsei
     class Teacher : Person 
     {
         string qualification; string psk;
+        static uint nextTd = 1;
+        public uint td;
         public Teacher(string t, string n, string f, string o, string q, string p) : base(t, n, f, o)
         {
-            qualification = q; psk = p;
+            qualification = q; psk = p; td = nextTd; nextTd++;
         }
         public override void Print()
         {
             base.Print();
-            Console.WriteLine($"Predmetno-tsiklovaya komissiya: {psk}. Qualify: {qualification}");
+            Console.WriteLine($"TeacherID: {td}. Predmetno-tsiklovaya komissiya: {psk}. Qualify: {qualification}");
         }
     }
     class Student : Person
@@ -113,8 +115,8 @@ namespace ISIP324_GorbachevKolotsei
      class UniversityManager
     {
         List<Student> students = new List<Student>() { new Student("+739898989", "Egor", "Gorbachev", "Dmitrievich") };
-        List<Course> courses = new List<Course>() { new Course("Maths", null) };
-        List<Teacher> teachers = new List<Teacher>() { new Teacher("+739898989", "Egor", "Gorbachev", "Dmitrievich", "Maths", "Maths") };
+        List<Teacher> teachers = new List<Teacher>() { new Teacher("+85696214896", "Fordov", "Maxim", "Olegovich", "C#", "Progr") };
+        List<Course> courses = new List<Course>() { new Course("C#", null) };
         void AddTeacher()
         {
             Console.WriteLine("Creating new teacher...");
@@ -130,7 +132,9 @@ namespace ISIP324_GorbachevKolotsei
             string q = Console.ReadLine();
             Console.Write("Ptsk:  ");
             string p = Console.ReadLine();
-            teachers.Add(new Teacher(t, n, f, o, q, p));
+            Teacher nt = new Teacher(t, n, f, o, q, p);
+            nt.Print();
+            teachers.Add(nt);
         }
         void AddStudent()
         {
@@ -143,7 +147,9 @@ namespace ISIP324_GorbachevKolotsei
             string o = Console.ReadLine();
             Console.Write("Telephone number:  ");
             string t = Console.ReadLine();
-            students.Add(new Student(t, n, f, o));
+            Student ns = new Student(t, n, f, o);
+            ns.Print();
+            students.Add(ns);
         }
         uint check(string s) 
         {
@@ -161,7 +167,8 @@ namespace ISIP324_GorbachevKolotsei
             Console.WriteLine("Creating new student...");
             Console.Write("Title:  ");
             string t = Console.ReadLine();
-            Teacher te = teachers.Find(teacher => teacher.id == check("Teacher ID:  "));
+            uint checkable = check("Teacher ID:  ");
+            Teacher te = teachers.Find(teacher => teacher.id == checkable);
             Course nc = new Course(t, te);
             nc.Print();
             courses.Add(nc);
@@ -169,37 +176,48 @@ namespace ISIP324_GorbachevKolotsei
         }
         void SeeStudentCourses()
         {
-            Student s = students.Find(student => student.id == check("StudentID"));
-            foreach (uint i in s.courses) courses.FirstOrDefault(course => course.code == i)?.Print();
+            uint checkable = check("StudentID  ");
+            Student st = students.Find(student => student.stud == checkable);
+            Console.WriteLine($"{st.name}'s courses:");
+            foreach (uint i in st.courses) courses.FirstOrDefault(course => course.code == i)?.Print();
         }
         void SeeStudentInfo()
         {
-            students.Find(student => student.id == check("StudentID"))?.Print();
+            uint checkable = check("StudentID  ");
+            Student st = students.Find(student => student.stud == checkable);
+            if (st != null) { st.Print(); } else { Console.WriteLine("Invalid student!"); }
         }
         void SeeTeacherInfo()
         {
-            teachers.Find(t => t.id == check("TeacherID"))?.Print();
+            uint checkable = check("TeacherID  ");
+            Teacher te = teachers.Find(t => t.td == checkable);
+            if (te != null) { te.Print(); } else { Console.WriteLine("Invalid teach!"); }
         }
         void SeeCourseInfo()
         {
-            courses.Find(c => c.code == check("CourseCode"))?.Print();
+            uint checkable = check("CourseCode  ");
+            Course st = courses.Find(c => c.code == checkable);
+            if (st != null) { st.Print(); } else { Console.WriteLine("Invalid course!"); }
         }
         void SeeCourseStudents()
         {
-            courses.Find(c => c.code == check("CourseCode"))?.PrintStudents(s => true);
+            Course cc = courses.Find(c => c.code == check("CourseCode  "));
+            if (cc != null) { cc.PrintStudents(s => true); } else { Console.WriteLine("Invalid!"); }
         }
         void AddCourseToStudent()
         {
-            Course c = courses.Find(course => course.code == check("CourseID"));
-            Student s = students.Find(student => student.id == check("StudentID"));
-            if (c != null) { c.AddStudent(s); } else { Console.WriteLine("Invalid course"); };
+            Course c = courses.Find(course => course.code == check("CourseID  "));
+            uint checkable = check("StudentID  ");
+            Student s = students.Find(student => student.stud == checkable);
+            if (c != null) { c.AddStudent(s); Console.WriteLine($"U {s.name} {s.familya} novii curs: {c.title}."); } else { Console.WriteLine("Invalid course"); };
         }
         void SetCourseTeacher()
         {
-            Course c = courses.Find(course => course.code == check("CourseID"));
-            Teacher t = teachers.Find(tt => tt.id == check("TeacherID"));
-            if (c != null && t != null) { c.teacher = t; } else { Console.WriteLine("Invalid course or teacher!"); }
-            Console.WriteLine($"Teper y cursa {c.code} teacher {t.name} {t.familya}");
+            uint checkableS = check("CourseID  ");
+            Course c = courses.Find(course => course.code == checkableS);
+            uint checkable = check("TeacherID  ");
+            Teacher te = teachers.Find(t => t.td == checkable);
+            if (c != null && te != null) { c.teacher = te; Console.WriteLine($"Teper y cursa {c.code} teacher {te.name} {te.familya}"); } else { Console.WriteLine("Invalid course or teacher!"); }
         }
         void SeeAllStudents()
         {
@@ -246,7 +264,7 @@ namespace ISIP324_GorbachevKolotsei
                     case 3: AddCourseToStudent(); break;
                     case 4: SeeStudentCourses(); break;
                     case 5: AddTeacher(); break;
-                    case 6: SeeTeacherInfo(); break; //-
+                    case 6: SeeTeacherInfo(); break; 
                     case 7: SetCourseTeacher(); break;
                     case 8: AddCourse(); break;
                     case 9: SeeCourseInfo(); break;
@@ -255,6 +273,7 @@ namespace ISIP324_GorbachevKolotsei
                     case 12: SeeAllTeachers(); break;
                     case 13: SeeAllCourses(); break;
                     case 0: return;
+                    default: return;
                 }
             }
         }
