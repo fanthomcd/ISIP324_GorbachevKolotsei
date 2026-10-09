@@ -37,10 +37,10 @@ namespace ISIP324_GorbachevKolotsei
     class Course
     {
         string title;
-        private static int nextCode = 0;
+        private static int nextCode = 1;
         public int code;
         public Teacher teacher;
-        List<Student> students;
+        List<Student> students = new List<Student>();
         public Course(string t, Teacher te)
         {
             title = t; teacher = te;
@@ -54,7 +54,7 @@ namespace ISIP324_GorbachevKolotsei
         public void Print()
         {
             Console.Write($"{code}. Name of course: {title}. ");
-            Console.WriteLine("Teacher: "); teacher.Print();
+            if (teacher != null) { Console.WriteLine("Teacher: "); teacher.Print(); } else { Console.WriteLine("No teacher!"); }
         }
         public void PrintStudents(Predicate<Student> p) 
         {
@@ -78,7 +78,7 @@ namespace ISIP324_GorbachevKolotsei
     class Student : Person
     {
         public List<int> courses = new List<int>();
-        static int nextStud = 0;
+        static int nextStud = 1;
         public int stud;
         public Student(string t, string n, string f, string o) : base(t, n, f, o)
         {
@@ -153,7 +153,7 @@ namespace ISIP324_GorbachevKolotsei
             {
                 string ss = Console.ReadLine();
                 uint.TryParse(ss, out result);
-            } while (result == 0);
+            } while (result < 0);
             return result;
         }
         void AddCourse()
@@ -162,7 +162,10 @@ namespace ISIP324_GorbachevKolotsei
             Console.Write("Title:  ");
             string t = Console.ReadLine();
             Teacher te = teachers.Find(teacher => teacher.id == check("Teacher ID:  "));
-            courses.Add(new Course(t, te));
+            Course nc = new Course(t, te);
+            nc.Print();
+            courses.Add(nc);
+            
         }
         void SeeStudentCourses()
         {
@@ -189,13 +192,13 @@ namespace ISIP324_GorbachevKolotsei
         {
             Course c = courses.Find(course => course.code == check("CourseID"));
             Student s = students.Find(student => student.id == check("StudentID"));
-            c.AddStudent(s);
+            if (c != null) { c.AddStudent(s); } else { Console.WriteLine("Invalid course"); };
         }
         void SetCourseTeacher()
         {
             Course c = courses.Find(course => course.code == check("CourseID"));
             Teacher t = teachers.Find(tt => tt.id == check("TeacherID"));
-            c.teacher = t;
+            if (c != null && t != null) { c.teacher = t; } else { Console.WriteLine("Invalid course or teacher!"); }
             Console.WriteLine($"Teper y cursa {c.code} teacher {t.name} {t.familya}");
         }
         void SeeAllStudents()
@@ -212,6 +215,7 @@ namespace ISIP324_GorbachevKolotsei
         }
         uint menu()
         {
+            Console.WriteLine();
             Console.WriteLine("1. AddStudent");
             Console.WriteLine("2. SeeStudentInfo");
             Console.WriteLine("3. AddCourseToStudent");
@@ -242,7 +246,7 @@ namespace ISIP324_GorbachevKolotsei
                     case 3: AddCourseToStudent(); break;
                     case 4: SeeStudentCourses(); break;
                     case 5: AddTeacher(); break;
-                    case 6: SeeTeacherInfo(); break;
+                    case 6: SeeTeacherInfo(); break; //-
                     case 7: SetCourseTeacher(); break;
                     case 8: AddCourse(); break;
                     case 9: SeeCourseInfo(); break;
