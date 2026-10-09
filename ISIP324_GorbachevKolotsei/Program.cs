@@ -18,8 +18,8 @@ namespace ISIP324_GorbachevKolotsei
     //Система должна позволять управлять информацией о студентах, преподавателях и курсах через консоль.
     class Person 
     {
-        private static int nextID = 1;
-        public int id;
+        private static uint nextID = 1;
+        public uint id;
         public string telephone;
         public string name;
         public string familya;
@@ -31,7 +31,7 @@ namespace ISIP324_GorbachevKolotsei
         }
         public void Print()
         {
-            Console.WriteLine($"{id}. {name} {familya} {otchestvo}. Pozvonite: {telephone};");
+            Console.WriteLine($"UserID: {id}. {name} {familya} {otchestvo}. Pozvonite: {telephone};");
         }
         public abstract AddCourse();
     }
@@ -39,7 +39,7 @@ namespace ISIP324_GorbachevKolotsei
     {
         string title;
         private static int nextCode = 0;
-        int code;
+        public int code;
         Teacher teacher;
         List<Student> students;
         public Course(string t, Teacher te)
@@ -79,10 +79,11 @@ namespace ISIP324_GorbachevKolotsei
     class Student : Person
     {
         public List<int> courses = new List<int>;
+        static int nextStud = 0;
         public int stud;
-        public Teacher(string t, string n, string f, string o, int s) : base(string t, string n, string f, string o)
+        public Teacher(string t, string n, string f, string o) : base(string t, string n, string f, string o)
         {
-            stud = s;
+            stud = nextStud; nextStud++;
         }
         public override Print()
         {
@@ -110,31 +111,97 @@ namespace ISIP324_GorbachevKolotsei
 
     //Ваша задача - спроектировать архитектуру приложения, используя принципы ООП, и реализовать
     //консольное меню для удобного взаимодействия со всеми описанными функциями системы.
+    static class UniversityManager()
+    {
+        List<Student> students;
+        List<Course> courses;
+        List<Teacher> teachers;
+        void AddTeacher()
+        {
+            Console.WriteLine("Creating new teacher...");
+            Console.Write("Name:  ");
+            string n = Console.ReadLine();
+            Console.Write("Familiya:  ");
+            string f = Console.ReadLine();
+            Console.Write("Otchestvo:  ");
+            string o = Console.ReadLine();
+            Console.Write("Telephone number:  ");
+            string t = Console.ReadLine();
+            Console.Write("Qualification:  ");
+            string q = Console.ReadLine();
+            Console.Write("Ptsk:  ");
+            string p = Console.ReadLine();
+            teachers.Add(new Teacher(t, n, f, o, q, p));
+        }
+        void AddStudent()
+        {
+            Console.WriteLine("Creating new student...");
+            Console.Write("Name:  ");
+            string n = Console.ReadLine();
+            Console.Write("Familiya:  ");
+            string f = Console.ReadLine();
+            Console.Write("Otchestvo:  ");
+            string o = Console.ReadLine();
+            Console.Write("Telephone number:  ");
+            string t = Console.ReadLine();
+            students.Add(new Student(t, n, f, o));
+        }
+        uint check(string s) 
+        {
+            uint result;
+            Console.Write(s);
+            do
+            {
+                string s = Console.ReadLine();
+                uint.Parse(s, out result);
+            } while (!result)
+        }
+        void AddCourse()
+        {
+            Console.WriteLine("Creating new student...");
+            Console.Write("Title:  ");
+            string t = Console.ReadLine();
+            Teacher te = teachers.Find(teacher => teacher.id == check(Console.ReadLine("Teacher ID:  ")));
+            courses.Add(new Course(t, te));
+        }
+        void SeeStudentCourses()
+        {
+            Student s = students.Find(student => student.id == check("StudentID"));
+            foreach (uint i in s.courses) courses.FirstOrDefault(course => course.code == i)?.Print();
+        }
+        void SeeStudentInfo()
+        {
+            students.Find(student => student.id == check("StudentID"))?.Print();
+        }
+        void start()
+        {
+            Console.WriteLine("СУУ");
+            while (true)
+            {
+                Console.WriteLine("1. AddStudent"); //+
+                Console.WriteLine("2. SeeStudentInfo");
+                Console.WriteLine("3. AddCourseToStudent");
+                Console.WriteLine("4. SeeStudentCourses"); //+
+                Console.WriteLine("5. AddTeacher"); //+
+                Console.WriteLine("6. SeeTeacherInfo");
+                Console.WriteLine("7. SetCourseTeacher");
+                Console.WriteLine("8. AddCourse"); //+
+                Console.WriteLine("9. SeeCourseInfo");
+                Console.WriteLine("10. SeeCourseStudents");
+                Console.WriteLine("11. SeeAllStudents");
+                Console.WriteLine("12. SeeAllTeachers");
+                Console.WriteLine("13. SeeAllCourses");
+                Console.WriteLine("0. Nya poka");
+            }
+            }
+        }
+    }
+
     internal class Program
     {
         static void Main(string[] args)
         {
             
-            void menu()
-            {
-                Console.WriteLine("СУУ");
-                while (true)
-                {
-                    Console.WriteLine("0 addBook; 1 delete; 2 search; 3 sort; 4 prices; 5 grpby; 6 block; 7 buy");
-                    uint act = check("chd???   ");
-                    switch (act) {
-                        case 0: addBook(); break;
-                        case 1: del(); break;
-                        case 2: search(); break;
-                        case 3: sort(); break;
-                        case 4: prices(); break;
-                        case 5: grpby(); break;
-                        case 6: addBlock(); break;
-                        case 7: buy(); break;
-                        default: return;
-                    }
-                }
-            }
             menu();
         }
     }
