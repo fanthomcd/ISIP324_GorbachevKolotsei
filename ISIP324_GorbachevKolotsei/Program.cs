@@ -29,18 +29,17 @@ namespace ISIP324_GorbachevKolotsei
             telephone = t;name = n; familya = f; otchestvo = o;
             id = nextID; nextID++;
         }
-        public void Print()
+        public virtual void Print()
         {
             Console.WriteLine($"UserID: {id}. {name} {familya} {otchestvo}. Pozvonite: {telephone};");
         }
-        public abstract AddCourse();
     }
     class Course
     {
         string title;
         private static int nextCode = 0;
         public int code;
-        Teacher teacher;
+        public Teacher teacher;
         List<Student> students;
         public Course(string t, Teacher te)
         {
@@ -60,17 +59,17 @@ namespace ISIP324_GorbachevKolotsei
         public void PrintStudents(Predicate<Student> p) 
         {
             Console.WriteLine("Studenti:");
-            foreach (Student s in Students) if (p(s)) s.Print();
+            foreach (Student s in students) if (p(s)) s.Print();
         }
     }
     class Teacher : Person 
     {
         string qualification; string psk;
-        public Teacher(string t, string n, string f, string o string q, string p) : base(string t, string n, string f, string o)
+        public Teacher(string t, string n, string f, string o, string q, string p) : base(t, n, f, o)
         {
-            qualification = q; psk = p
+            qualification = q; psk = p;
         }
-        public override Print()
+        public override void Print()
         {
             base.Print();
             Console.WriteLine($"Predmetno-tsiklovaya komissiya: {psk}. Qualify: {qualification}");
@@ -78,14 +77,14 @@ namespace ISIP324_GorbachevKolotsei
     }
     class Student : Person
     {
-        public List<int> courses = new List<int>;
+        public List<int> courses = new List<int>();
         static int nextStud = 0;
         public int stud;
-        public Teacher(string t, string n, string f, string o) : base(string t, string n, string f, string o)
+        public Student(string t, string n, string f, string o) : base(t, n, f, o)
         {
             stud = nextStud; nextStud++;
         }
-        public override Print()
+        public override void Print()
         {
             base.Print();
             Console.WriteLine($"Nomer studa: {stud}.");
@@ -111,11 +110,11 @@ namespace ISIP324_GorbachevKolotsei
 
     //Ваша задача - спроектировать архитектуру приложения, используя принципы ООП, и реализовать
     //консольное меню для удобного взаимодействия со всеми описанными функциями системы.
-    static class UniversityManager()
+     class UniversityManager
     {
-        List<Student> students;
-        List<Course> courses;
-        List<Teacher> teachers;
+        List<Student> students = new List<Student>() { new Student("+739898989", "Egor", "Gorbachev", "Dmitrievich") };
+        List<Course> courses = new List<Course>() { new Course("Maths", null) };
+        List<Teacher> teachers = new List<Teacher>() { new Teacher("+739898989", "Egor", "Gorbachev", "Dmitrievich", "Maths", "Maths") };
         void AddTeacher()
         {
             Console.WriteLine("Creating new teacher...");
@@ -148,20 +147,21 @@ namespace ISIP324_GorbachevKolotsei
         }
         uint check(string s) 
         {
-            uint result;
+            uint result = 0;
             Console.Write(s);
             do
             {
-                string s = Console.ReadLine();
-                uint.Parse(s, out result);
-            } while (!result)
+                string ss = Console.ReadLine();
+                uint.TryParse(ss, out result);
+            } while (result == 0);
+            return result;
         }
         void AddCourse()
         {
             Console.WriteLine("Creating new student...");
             Console.Write("Title:  ");
             string t = Console.ReadLine();
-            Teacher te = teachers.Find(teacher => teacher.id == check(Console.ReadLine("Teacher ID:  ")));
+            Teacher te = teachers.Find(teacher => teacher.id == check("Teacher ID:  "));
             courses.Add(new Course(t, te));
         }
         void SeeStudentCourses()
@@ -173,26 +173,85 @@ namespace ISIP324_GorbachevKolotsei
         {
             students.Find(student => student.id == check("StudentID"))?.Print();
         }
-        void start()
+        void SeeTeacherInfo()
+        {
+            teachers.Find(t => t.id == check("TeacherID"))?.Print();
+        }
+        void SeeCourseInfo()
+        {
+            courses.Find(c => c.code == check("CourseCode"))?.Print();
+        }
+        void SeeCourseStudents()
+        {
+            courses.Find(c => c.code == check("CourseCode"))?.PrintStudents(s => true);
+        }
+        void AddCourseToStudent()
+        {
+            Course c = courses.Find(course => course.code == check("CourseID"));
+            Student s = students.Find(student => student.id == check("StudentID"));
+            c.AddStudent(s);
+        }
+        void SetCourseTeacher()
+        {
+            Course c = courses.Find(course => course.code == check("CourseID"));
+            Teacher t = teachers.Find(tt => tt.id == check("TeacherID"));
+            c.teacher = t;
+            Console.WriteLine($"Teper y cursa {c.code} teacher {t.name} {t.familya}");
+        }
+        void SeeAllStudents()
+        {
+            foreach (Student student in students) { student.Print(); }
+        }
+        void SeeAllTeachers()
+        {
+            foreach (Teacher teacher in teachers) { teacher.Print(); }
+        }
+        void SeeAllCourses()
+        {
+            foreach (Course course in courses) { course.Print(); }
+        }
+        uint menu()
+        {
+            Console.WriteLine("1. AddStudent");
+            Console.WriteLine("2. SeeStudentInfo");
+            Console.WriteLine("3. AddCourseToStudent");
+            Console.WriteLine("4. SeeStudentCourses");
+            Console.WriteLine("5. AddTeacher");
+            Console.WriteLine("6. SeeTeacherInfo");//+
+            Console.WriteLine("7. SetCourseTeacher");//+
+            Console.WriteLine("8. AddCourse");
+            Console.WriteLine("9. SeeCourseInfo");//+
+            Console.WriteLine("10. SeeCourseStudents");//+
+            Console.WriteLine("11. SeeAllStudents");
+            Console.WriteLine("12. SeeAllTeachers");
+            Console.WriteLine("13. SeeAllCourses");
+            Console.WriteLine("0. Nya poka");
+            uint action = check("Chd?  ");
+            return action;
+        }
+        public void start()
         {
             Console.WriteLine("СУУ");
             while (true)
             {
-                Console.WriteLine("1. AddStudent"); //+
-                Console.WriteLine("2. SeeStudentInfo");
-                Console.WriteLine("3. AddCourseToStudent");
-                Console.WriteLine("4. SeeStudentCourses"); //+
-                Console.WriteLine("5. AddTeacher"); //+
-                Console.WriteLine("6. SeeTeacherInfo");
-                Console.WriteLine("7. SetCourseTeacher");
-                Console.WriteLine("8. AddCourse"); //+
-                Console.WriteLine("9. SeeCourseInfo");
-                Console.WriteLine("10. SeeCourseStudents");
-                Console.WriteLine("11. SeeAllStudents");
-                Console.WriteLine("12. SeeAllTeachers");
-                Console.WriteLine("13. SeeAllCourses");
-                Console.WriteLine("0. Nya poka");
-            }
+                uint action = menu();
+                switch (action)
+                {
+                    case 1: AddStudent(); break;
+                    case 2: SeeStudentInfo(); break;
+                    case 3: AddCourseToStudent(); break;
+                    case 4: SeeStudentCourses(); break;
+                    case 5: AddTeacher(); break;
+                    case 6: SeeTeacherInfo(); break;
+                    case 7: SetCourseTeacher(); break;
+                    case 8: AddCourse(); break;
+                    case 9: SeeCourseInfo(); break;
+                    case 10: SeeCourseStudents(); break;
+                    case 11: SeeAllStudents(); break;
+                    case 12: SeeAllTeachers(); break;
+                    case 13: SeeAllCourses(); break;
+                    case 0: return;
+                }
             }
         }
     }
@@ -201,8 +260,8 @@ namespace ISIP324_GorbachevKolotsei
     {
         static void Main(string[] args)
         {
-            
-            menu();
+            UniversityManager um = new UniversityManager();
+            um.start();
         }
     }
 }
