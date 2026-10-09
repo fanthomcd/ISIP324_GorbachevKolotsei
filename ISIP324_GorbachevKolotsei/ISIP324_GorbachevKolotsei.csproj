@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{253FE853-043B-4E6B-B890-43DE81DA7FD5}</ProjectGuid>
+    <ProjectGuid>{8C28F758-0D14-A9B5-855A-BF201E35BC7A}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>ISIP324_GorbachevKolotsei</RootNamespace>
     <AssemblyName>ISIP324_GorbachevKolotsei</AssemblyName>
