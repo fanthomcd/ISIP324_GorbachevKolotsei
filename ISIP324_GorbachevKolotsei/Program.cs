@@ -20,15 +20,17 @@ namespace ISIP324_GorbachevKolotsei
     public static class Checker {
         public static uint check(string s)
         {
-            uint result = 0;
+            uint result;
             Console.Write(s);
-            do
+            while (!uint.TryParse(Console.ReadLine(), out result))
             {
-                string ss = Console.ReadLine();
-                uint.TryParse(ss, out result);
-            } while (result < 0);
+                Console.WriteLine("Это не число! Попробуйте еще раз.");
+                Console.Write(s);
+            }
+
             return result;
         }
+
     }
     class Game
     {
@@ -62,12 +64,11 @@ namespace ISIP324_GorbachevKolotsei
             };
         public Random random = new Random();
         private Player player = Player.GetInstance();
-        //private EnemyFabric fabric = new EnemyFabric();
         private int totalSteps = 0;
 
         public void Battle(int steps) 
         {
-            Enemy e = steps % 10 != 0 ? EnemyFabric.createEnemy(random) : EnemyFabric.createBoss(random);
+            Enemy e = steps % 10 != 0 ? EnemyFabric.createEnemy(random, steps) : EnemyFabric.createBoss(random, steps);
             bool playerTurn = true;
             Console.WriteLine($"Встретили врага {e.name}.");
             while (player.isAlive() && e.isAlive())
@@ -75,18 +76,32 @@ namespace ISIP324_GorbachevKolotsei
                 Console.WriteLine("     HP:");
                 Console.WriteLine($"Enemy HP: {e.health}/{e.maxHealth}");
                 Console.WriteLine($"Player HP: {player.health}/{player.maxHealth}");
-                if (playerTurn)
+                if (player.isFrosen)
                 {
-                    uint action = Checker.check("Чд кд? 0 - attack, 1 - defense ");
-                    if (action == 0) { Console.WriteLine($"Player атакует {e.name}!"); player.Attack(e, random); }
-                    if (action == 1) { player.Defense(); }
-                }
-                if (!playerTurn)
-                {
-                    Console.WriteLine($"{e.name} атакует Player!");
+                    playerTurn = false;
+                    Console.WriteLine("Подморозили вас конешно");
+                    player.isFrosen = false;
+                    player.isDefencing = false;
                     e.Attack(player, random);
                 }
-                playerTurn = !playerTurn;
+                else
+                {
+                    if (playerTurn)
+                    {
+                        uint action;
+                        do {
+                            action = Checker.check("Чд кд? 0 - attack, 1 - defense ");
+                        } while (action > 2);
+                        if (action == 0) { Console.WriteLine($"Player атакует {e.name}!"); player.Attack(e, random); }
+                        if (action == 1) { player.Defense(); Console.WriteLine("Обороняемся"); }
+                    }
+                    if (!playerTurn)
+                    {
+                        Console.WriteLine($"{e.name} атакует Player!");
+                        e.Attack(player, random);
+                    }
+                    playerTurn = !playerTurn;
+                }
             }
             if (player.isAlive()) Console.WriteLine($"Хороший Player! Ты победил {e.name}!"); else Console.WriteLine($"Твоя смерть - {e.name}. Rest in peace, Player");
         }
@@ -139,7 +154,7 @@ namespace ISIP324_GorbachevKolotsei
     public class Player : Entity
     {
         private Player(decimal h, decimal d, decimal ap, decimal cc) : base(h, d, ap, cc) {
-            this.EquipWeapon(new Weapon("Плевок", 2000, 0.01m));
+            this.EquipWeapon(new Weapon("Плевок", 20, 0.01m));
             this.EquipEquipment(new Equipment("Голый", 0.5m, 1m));
         }
         private static Player _instance = new Player(100, 0, 0, 0);
@@ -153,7 +168,7 @@ namespace ISIP324_GorbachevKolotsei
                 decimal dmg = damage * (1 - kogo.armorPercent);
                 kogo.health -= dmg;
                 Console.WriteLine($"И наносит {dmg} дамага!");
-            }
+            } else { Console.WriteLine("Ты промахнулся дебил ха-ха"); }
         }
         public void Defense() {
             this.isDefencing = true;
@@ -243,20 +258,22 @@ namespace ISIP324_GorbachevKolotsei
 
     static public class EnemyFabric 
     {
-        static public Enemy createEnemy(Random rand)
+        static public Enemy createEnemy(Random rand, int steps)
         {
             int etype = rand.Next(1, 4);
+            decimal diff = 1 + steps/50m;
             switch (etype)
             {
-                case 1: return new Goblin(rand.Next(40, 60), rand.Next(0, 15), 0.05m, 0.03m, "Гоблин", false);
+                case 1: return new Goblin(rand.Next(40, 60), rand.Next(0, 15), 0.05m, 0.05m, "Гоблин", false);
                 case 2: return new Skeleton(rand.Next(20, 50), rand.Next(0, 21), 0.05m, 0.00001m, "Скелет", true);
                 case 3: return new Mage(rand.Next(10, 90), rand.Next(1, 33), -0.25m, 0.00000001m, "Маг", false);
                 default: return new Gorlanov(rand.Next(50, 150), rand.Next(10, 20), 0.25m, 0.00000001m, "ВВГ", false);
             }
         }
-        static public Enemy createBoss(Random rand)
+        static public Enemy createBoss(Random rand, int steps)
         {
             int etype = rand.Next(1, 5);
+            decimal diff = 1 + steps/50m;
             switch (etype)
             {
                 case 1: return new Gorlanov(rand.Next(50, 150), rand.Next(10, 20), 0.25m, 0.00000001m, "ВВГ", false);
@@ -272,18 +289,25 @@ namespace ISIP324_GorbachevKolotsei
         public decimal freezeChance;
         public string name;
         public bool ignoreArmour;
-        public Enemy(decimal h, decimal d, decimal ap, decimal cc, string n, bool ia, decimal fc = 0) : base(h, d, ap, cc) {
+        public Enemy(decimal h, decimal d, decimal ap, decimal cc, string n, bool ia, decimal fc = -1) : base(h, d, ap, cc) {
             name =n; ignoreArmour = ia; freezeChance = fc;
         }
         public override void Attack(Entity kogo, Random rand) 
         {
             if (rand.Next(1, 101) > 5)
             {
-                if (kogo.isDefencing && rand.Next(1, 101) < 40) { Console.WriteLine("Успешный блок!"); return; };
-                decimal dmg = damage * ((rand.Next(1, 101) < critChance ? 1.75m : 1) - (ignoreArmour ? 0 : kogo.armorPercent)) * (kogo.isDefencing ? 1 - rand.Next(40, 70) / 100 : 1) - kogo.armorAbsolute;
+                if (kogo.isDefencing && rand.Next(1, 101) < 40) { Console.WriteLine("Успешный блок!"); kogo.isDefencing = false; return; };
+                decimal criting = Convert.ToDecimal(rand.Next(1, 101)) / 100m;
+                bool crit = (criting < critChance);
+                decimal dmg = damage * ((crit ? 1.75m : 1) - (ignoreArmour ? 0 : kogo.armorPercent)) * (kogo.isDefencing ? 1 - rand.Next(40, 70) / 100 : 1) - kogo.armorAbsolute;
+                if (dmg < 0) { dmg = 0; }
                 Console.WriteLine($"И наносит {dmg} дамага.");
+                if (crit) Console.WriteLine($"Кританул! {critChance}"); 
                 kogo.health -= dmg;
-                if (rand.Next(1, 101)/100 < freezeChance) kogo.isFrosen = true;
+                if (rand.Next(1, 101)/100m < freezeChance) kogo.isFrosen = true;
+            } else 
+            {
+                Console.WriteLine("Он промахнулся дебил ха-ха");
             }
         }
     }
@@ -298,7 +322,7 @@ public class Goblin : Enemy
     }
     public class Mage : Enemy
     {
-        public Mage(decimal h, decimal d, decimal ap, decimal cc, string n, bool ia) : base(h, d, ap, cc, n, ia, 0.15m) { }
+        public Mage(decimal h, decimal d, decimal ap, decimal cc, string n, bool ia) : base(h, d, ap, cc, n, ia, 0.05m) { }
     }
     public class Gorlanov : Goblin
     {
