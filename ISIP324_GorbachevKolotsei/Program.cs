@@ -11,6 +11,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using static ISIP324_GorbachevKolotsei.Program;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ISIP324_GorbachevKolotsei
 {
@@ -38,20 +39,22 @@ namespace ISIP324_GorbachevKolotsei
         public decimal health;
         public decimal damage;
         public decimal armorPercent;
-        public int critChance;
-        public bool isFrosen;
+        public decimal critChance;
+        public bool isFrosen = false;
         public abstract void Attack(Entity kogo, Random rand);
-        
+        public Entity(decimal h, decimal d, decimal ap, decimal cc) 
+        {
+            maxHealth = h; health = h; damage = d; armorPercent = ap; critChance = cc;
+        }
 
     }
     public class Player : Entity
     {
-        private Player() {
-            health = 100; maxHealth = 100;
+        private Player(decimal h, decimal d, decimal ap, decimal cc) : base(h, d, ap, cc) {
             this.EquipWeapon(new Weapon("Плевок", 2, 0.01m));
             this.EquipEquipment(new Equipment("Голый", -0.05m));
         }
-        private static Player _instance = new Player();
+        private static Player _instance = new Player(100, 0, 0, 0);
         public static Player GetInstance() { return _instance; }
         public Weapon weapon;
         public Equipment equip;
@@ -68,19 +71,38 @@ namespace ISIP324_GorbachevKolotsei
         }
         public bool EquipWeapon(Weapon we)
         {
-            if (this.weapon != null) {
-                Console.WriteLine($"Новое оружие: {we.Name}, его урон: {we.damage}, крит.шанс: {we.critChance}.");
+            if (this.weapon != null)
+            {
+                Console.WriteLine($"Новое оружие: {we.name}, его урон: {we.damage}, крит.шанс: {we.critChance}.");
                 uint action = Checker.check("Equip? 0/1");
-            this.weapon = we;
-            this.damage = we.damage;
-            this.critChance = we.critChance;
-            return true;
+                if (action == 1)
+                {
+                    this.weapon = we;
+                    this.damage = we.damage;
+                    this.critChance = we.critChance;
+                    return true;
+                } else
+                {
+                    Console.WriteLine("Не надел. Ну и ладно.");
+                    return false;
+                } 
+            } else
+            {
+                this.weapon = we;
+                this.damage = we.damage;
+                this.critChance = we.critChance;
+                return true;
+            }
         }
         public bool EquipEquipment(Equipment eq)
         {
             this.equip = eq;
             this.armorPercent = eq.armorPercent;
             return true;
+        }
+        public bool isAlive()
+        {
+            return health > 0;
         }
 
     }
@@ -104,14 +126,72 @@ namespace ISIP324_GorbachevKolotsei
     }
 
     public class EnemyFabric { }
-    public abstract class Enemy : Entity{ }
-    public class Goblin : Enemy { }
-    public class Skeleton : Enemy { }
-    public class Mage : Enemy { }
-    public class Gorlanov : Goblin { }
-    public class Kovalskii : Skeleton { }
-    public class Archmage : Mage { }
-    public class Pestov : Skeleton { }
+    public abstract class Enemy : Entity
+    {
+        public decimal freezeChance;
+        public string name;
+        public bool ignoreArmour;
+        public Enemy(decimal h, decimal d, decimal ap, decimal cc, string name, bool ignoreDefence, decimal freezeChance = 0) : base(h, d, ap, cc) {
+
+        }
+        public void Attack() { }
+    }
+
+public class Goblin : Enemy
+    {
+        public Goblin() : base(50, 10, 0.05m, 0.1m, "Гоблин", false) { }
+    }
+    public class Skeleton : Enemy
+    {
+        public Skeleton() : base(40, 8, 0.03m, 0, "Скелет", true) { }
+    }
+    public class Mage : Enemy
+    {
+        public Mage() : base(30, 12, 0.02m, 0, "Маг", false, 0.15m) { }
+    }
+    public class Gorlanov : Goblin
+    {
+        public Gorlanov() : base()
+        {
+            health *= 2;
+            damage *= 1.5m;
+            armorPercent *= 1.2m;
+            critChance += 0.1m;
+            name = "ВВГ";
+        }
+    }
+    public class Kovalskii : Skeleton
+    {
+        public Kovalskii() : base()
+        {
+            health *= 2.5m;
+            damage *= 1.3m;
+            armorPercent *= 1.4m;
+            name = "Ковальский";
+        }
+    }
+    public class Archmage : Mage
+    {
+        public Archmage() : base()
+        {
+            health *= 1.8m;
+            damage *= 1.6m;
+            armorPercent *= 1.1m;
+            name = "Архимаг C++";
+            freezeChance += 0.1m;
+        }
+    }
+    public class Pestov : Skeleton
+    {
+        public Pestov() : base()
+        {
+            health *= 1.3m;
+            damage *= 1.8m;
+            armorPercent *= 0.6m;
+            freezeChance += 0.15m;
+            name = "Пестов С--";
+        }
+    }
     internal class Program
     {
         static void Main(string[] args)
