@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
@@ -32,6 +33,13 @@ namespace ISIP324_GorbachevKolotsei
     {
         public Random random = new Random();
         private Player player = Player.GetInstance();
+
+        public void Battle() { }
+
+        public void Start() 
+        {
+            
+        }
     }
     public abstract class Entity
     {
@@ -131,10 +139,16 @@ namespace ISIP324_GorbachevKolotsei
         public decimal freezeChance;
         public string name;
         public bool ignoreArmour;
-        public Enemy(decimal h, decimal d, decimal ap, decimal cc, string name, bool ignoreDefence, decimal freezeChance = 0) : base(h, d, ap, cc) {
-
+        public Enemy(decimal h, decimal d, decimal ap, decimal cc, string n, bool ia, decimal fc = 0) : base(h, d, ap, cc) {
+            name =n; ignoreArmour = ia; freezeChance = fc;
         }
-        public void Attack() { }
+        public override void Attack(Entity kogo, Random rand) 
+        {
+            if (rand.Next(1, 101) > 5)
+            {
+                kogo.health -= damage * (1 - kogo.armorPercent);
+            }
+        }
     }
 
 public class Goblin : Enemy
@@ -197,6 +211,7 @@ public class Goblin : Enemy
         static void Main(string[] args)
         {
             Game game = new Game();
+            game.Start();
         }
     }
 }
